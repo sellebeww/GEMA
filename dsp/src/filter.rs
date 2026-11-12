@@ -1,5 +1,5 @@
 // Copyright (c) 2026 Vassel Goleyu. SPDX-License-Identifier: MIT
-//! Filter IIR biquad: pembobotan A (IEC 61672) dan band-pass oktaf.
+//! Filter IIR biquad dan pembobotan A (IEC 61672). Bank oktaf ada di `octave_bank`.
 
 use std::f64::consts::PI;
 
@@ -13,7 +13,7 @@ pub struct Biquad {
 
 impl Biquad {
     /// Koefisien dinormalisasi terhadap a0.
-    fn new(b: [f64; 3], a: [f64; 3]) -> Self {
+    pub(crate) fn new(b: [f64; 3], a: [f64; 3]) -> Self {
         Self {
             b: b.map(|v| v / a[0]),
             a: [a[1] / a[0], a[2] / a[0]],
@@ -51,6 +51,16 @@ pub struct Cascade {
 }
 
 impl Cascade {
+    /// Seksi seri, penguatan diatur supaya 0 dB di `f_ref` Hz.
+    pub(crate) fn normalized(sections: Vec<Biquad>, f_ref: f64, fs: f64) -> Self {
+        let mut c = Self {
+            sections,
+            gain: 1.0,
+        };
+        c.gain = 1.0 / c.magnitude(f_ref, fs);
+        c
+    }
+
     pub fn process(&mut self, x: f64) -> f64 {
         self.sections
             .iter_mut()
@@ -89,19 +99,6 @@ pub fn a_weighting(fs: f64) -> Cascade {
     };
     c.gain = 1.0 / c.magnitude(1000.0, fs);
     c
-}
-
-/// Band-pass satu oktaf berpusat di `f0` (RBJ cookbook, puncak 0 dB).
-pub fn octave_bandpass(f0: f64, fs: f64) -> Cascade {
-    let w0 = 2.0 * PI * f0 / fs;
-    let alpha = w0.sin() * (std::f64::consts::LN_2 / 2.0 * w0 / w0.sin()).sinh();
-    Cascade {
-        sections: vec![Biquad::new(
-            [alpha, 0.0, -alpha],
-            [1.0 + alpha, -2.0 * w0.cos(), 1.0 - alpha],
-        )],
-        gain: 1.0,
-    }
 }
 
 #[cfg(test)]
@@ -151,16 +148,5 @@ mod tests {
         let rms = (tail.iter().map(|v| v * v).sum::<f64>() / tail.len() as f64).sqrt();
         let gain_db = db(rms * 2f64.sqrt());
         assert!((gain_db - -8.6).abs() < 0.3, "{gain_db:.2}");
-    }
-
-    #[test]
-    fn octave_bandpass_passes_center_rejects_far() {
-        let fs = 48000.0;
-        for f0 in [500.0, 1000.0, 2000.0] {
-            let b = octave_bandpass(f0, fs);
-            assert!(db(b.magnitude(f0, fs)).abs() < 0.1);
-            assert!(db(b.magnitude(f0 * 4.0, fs)) < -10.0);
-            assert!(db(b.magnitude(f0 / 4.0, fs)) < -10.0);
-        }
     }
 }

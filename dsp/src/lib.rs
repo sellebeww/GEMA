@@ -7,7 +7,11 @@
 
 pub mod filter;
 pub mod level;
+pub mod octave_bank;
 pub mod rt60;
+pub mod schroeder;
+pub mod sweep;
+pub mod wasm;
 
 #[cfg(test)]
 pub(crate) mod testsig {

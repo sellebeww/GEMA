@@ -5,3 +5,8 @@ pkg/
 .DS_Store
 *.log
 .env
+
+web/src/wasm-pkg/
+web/e2e/.tmp/
+test-results/
+playwright-report/

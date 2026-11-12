@@ -1,12 +1,15 @@
 [package]
-name = "gema-dsp"
+name = "dsp-wasm"
 version = "0.1.0"
 edition = "2021"
 authors = ["Vassel Goleyu"]
 license = "MIT"
-description = "DSP akustik kelas untuk Gema: pembobotan A, LAeq, RT60."
+description = "DSP akustik kelas untuk Gema: pembobotan A, LAeq, bank oktaf, RT60, sweep."
 
 [lib]
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
+serde = { version = "1", features = ["derive"] }
+serde-wasm-bindgen = "0.6"
+wasm-bindgen = "0.2"
