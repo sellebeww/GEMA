@@ -1,0 +1,12 @@
+[package]
+name = "gema-dsp"
+version = "0.1.0"
+edition = "2021"
+authors = ["Vassel Goleyu"]
+license = "MIT"
+description = "DSP akustik kelas untuk Gema: pembobotan A, LAeq, RT60."
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
